@@ -76,15 +76,31 @@ TypeSubseq where(TypeSeq inputSeq, ft f) {
 }
 
 int main(int argc, const char * argv[]) {
-    Array<int> Obj;
-    for (int i=0; i<3;++i){
-        Obj.append(i);
+    List<char> Obj3;
+    string s;
+    std::getline ( std::cin, s );
+    for(int i = 0; i < s.length(); ++i){
+        Obj3.append(s[i]);
     }
-    Obj.resize(5);
-    cout<<Obj.length()<<endl;
-    List<string> Obj3;
-    string x;
-    for (long i = 6; i >= 1; --i) {
+    cout<< Obj3.PolCheck();
+    if (Obj3.PolCheck()==true){
+       cout<<" polindrom "<<endl;
+    }
+    else{
+        cout<<"not polindrom "<<endl;
+    }
+    Array<int> Ob;
+    for (int i=0; i<9;++i){
+        Ob.append(i);
+    }
+    Ob.swap2(std::move(Ob[0]), std::move(Ob[2]));
+    cout<<Ob;
+    Ob.resize(15);
+    cout<<Ob.length()<<endl;
+   /* cout<<Obj.length()<<endl;
+    List<int> Obj3;
+    int x;
+    for (long i = 3; i >= 1; --i) {
         cin >> x;
         Obj3.append(x);
     }
@@ -183,7 +199,7 @@ int main(int argc, const char * argv[]) {
     cout<< "сложим 0 и 1: "<< *veccomp.GetElem(0)<<endl;
     veccomp.Remove();
     cout<< "длина после удаления: "<< veccomp.Length()<<endl;
-    testList();
+    testList();*/
     }
 
 void testArray() {
@@ -283,3 +299,5 @@ cout << "индекс элемента " << Vec1.GetElem(index) << ":  " << Vec1
 
 
   
+
+

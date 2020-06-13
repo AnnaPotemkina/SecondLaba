@@ -11,12 +11,15 @@
 #include "ArrayElem.h"
 #include "Errors.h"
 #include <iostream>
+#include <stdlib.h>
 
 template <typename T>
 class Array{
 private:
-    ArrayElem<T>* data;
+    //ArrayElem<T>* data;
+    T* data;
     unsigned long int size;
+    unsigned long int capacity;
 public:
     Array();
 
@@ -28,11 +31,12 @@ public:
     
     ~Array();
     
-    void resize(int);
-    
+     void resize(unsigned long int);
+       
     void append(T);
 
     void prepend(T);
+
 
     void pop(unsigned long int);
 
@@ -46,13 +50,13 @@ public:
     
     unsigned long int getIndex(T);
 
-    void resize(unsigned long int);
-
     unsigned long int length();
+    
+    void swap2(T&& a, T&& b);
 
-    ArrayElem<T> *getFirst();
+     T *getFirst();
 
-    ArrayElem<T> *getLast();
+     T *getLast();
 
     void insert( T, unsigned long int);
     
@@ -68,38 +72,80 @@ public:
     
     Array<T>& operator=(const Array<T>&);
     
-    ArrayElem<T>& operator[](unsigned long int);
+    Array(Array<T> &&arr);
+    
+   // ArrayElem<T>& operator[](unsigned long int);
+    
+    T&  operator[] (unsigned long int i);
     
     void deleteAll();
+    
+     Array<T>& operator=( Array<T>&&);
 
     template<typename T1>
     friend std::ostream& operator<<(std::ostream&, const Array<T1>&);
 };
 
+// Конструктор перемещения
+template<typename T>
+  Array<T>:: Array(Array &&arr):data(arr.data), size(arr.size)
+   {
+       arr.size = 0;
+       arr.data = nullptr;
+   }
+
+   // Оператор присваивания перемещением
+template<typename T>
+Array<T>& Array<T>:: operator=(Array<T> &&arr)
+   {
+       if (&arr == this){
+           return *this;
+       }
+       delete[] data;
+
+       size = arr.size;
+       data = arr.data;
+       arr.size = 0;
+       arr.data = nullptr;
+
+       return *this;
+   }
+
 template<typename T>
    Array<T>::~Array() = default;
 
 template<typename T>
-Array<T>::Array() {
-           data = nullptr;
-           size = 0;
-}
+  Array<T>:: Array()
+   {
+       size = 0;
+       capacity = 0;
+       data = NULL;
+   }
 
 template <typename T>
-Array<T>::Array(unsigned long int n)
-{
-    data = new ArrayElem<T>[n];
-    size= n;
-}
+Array<T>:: Array(unsigned long int Newsize)
+   {
+       size = Newsize;
+       capacity = Newsize;
+       if (Newsize != 0)
+           data = new T[Newsize];
+       else
+           data = 0;
+   }
 
 template <typename T>
-Array<T>::Array(const Array<T>& arrayToCopy) {
-    data = new ArrayElem<T>[arrayToCopy.size];
-    for (unsigned long int i = 0; i < arrayToCopy.size; ++i) {
-        data[i] = arrayToCopy.data[i];
+Array<T>::Array(const Array<T>& arrayToCopy)
+    {
+        size = arrayToCopy.size;
+        capacity = size;
+        data = NULL;
+        if (size != 0)
+            data = new T[size];
+        else
+            data = 0;
+        for (int i = 0; i < size; ++i)
+            data[i] = arrayToCopy.data[i];
     }
-    size = arrayToCopy.size;
-}
 
 template <typename T>
 bool Array<T>::Check() {
@@ -111,7 +157,7 @@ bool Array<T>::Check() {
     }
 }
 
-template<typename T>
+/*template<typename T>
        void Array<T>::resize(int n) {
            if (n >= this->size) {
                Array<T> dub(*this);
@@ -125,6 +171,28 @@ template<typename T>
                throw Exception_in_array("Array can't resize!");
            }
        }
+*/
+template<typename T>
+void Array<T>::resize(unsigned long int Newsize)
+   {
+       if (Newsize > capacity)
+       {
+           unsigned long int new_capacity;
+           if (Newsize>size*2){
+               new_capacity=Newsize;
+           }
+           else{
+               new_capacity=size*2;
+           }
+           T * new_data = new T[new_capacity];
+           for ( unsigned long int i = 0; i < size; ++i)
+               new_data[i] = data[i];
+           delete[] data;
+           data = new_data;
+           capacity = new_capacity;
+       }
+       size = Newsize;
+   }
 
 template <typename T>
 void Array<T>::deleteAll() {
@@ -137,7 +205,7 @@ void Array<T>::deleteAll() {
     }
 }
 
-template<typename T>
+/*template<typename T>
 void Array<T>::append(T val) {
            if (size == 0) {
                data = new ArrayElem<T>[1];
@@ -154,9 +222,25 @@ void Array<T>::append(T val) {
                data[size] = val;
                ++size;
            }
-       }
+       }*/
+template<typename T>
+void Array<T>::append(T val)
+{
+    resize(size + 1);
+    data[size - 1] = val;
+}
 
 template<typename T>
+void Array<T>::prepend(T val)
+{
+    resize(size + 1);
+    Array<T> Arr(*this);
+    for (int i = 1; i < size + 1; ++i) {
+        data[i] = Arr[i - 1];
+    }
+    data[0] = val;
+}
+/*template<typename T>
    void Array<T>::prepend(T val) {
        if (size == 0) {
            data = new ArrayElem<T>[1];
@@ -172,14 +256,14 @@ template<typename T>
            data[0] = val;
            ++size;
        }
-   }
+   }*/
 
 template<typename T>
 void Array<T>::pop(unsigned long int index) {
     if (index >= 0 && index < size) {
         Array<T> Arr(*this);
         delete[] data;
-        data = new ArrayElem<T>[size - 1];
+        data = new T[size - 1];
         for (int i = 0; i < size; ++i) {
             if (i < index) {
                 data[i] = Arr[i];
@@ -196,7 +280,7 @@ void Array<T>::pop(unsigned long int index) {
 template<typename T>
    void Array<T>::swap(unsigned long int index1, unsigned long int index2) {
        if (index1 >= 0 && index1 < size && index2 >= 0 && index2 < size) {
-           ArrayElem<T> dub = data[index1];
+           T dub = data[index1];
            data[index1] = data[index2];
            data[index2] = dub;
        } else {
@@ -204,10 +288,19 @@ template<typename T>
        }
    }
 
+template <typename T>
+void Array<T>:: swap2(T&& a, T&& b)
+{
+    T temp(std::move(a));
+    a = std::move(b);
+    b = std::move(temp);
+}
+
+
    template<typename T>
    const T& Array<T>::getElem(unsigned long int index) {
        if (index >= 0 && index < size) {
-           return data[index].getElem();
+           return data[index];
        } else {
            throw Exception_in_array("Index out of range!");
        }
@@ -216,27 +309,13 @@ template<typename T>
    template<typename T>
    unsigned long int Array<T>::getIndex(T val) {
        for (int i = 0; i < size; ++i) {
-           if (data[i].getElem() == val) {
+           if (data[i] == val) {
                return i;
            }
        }
        return -1;
    }
 
-   template<typename T>
-   void Array<T>::resize(unsigned long int n) {
-       if (n >= size) {
-           Array<T> Arr(*this);
-           delete[] data;
-           data = new ArrayElem<T>[n];
-           for (int i = 0; i < size; ++i) {
-               data[i] = Arr[i];
-           }
-           size = n;
-       } else {
-           throw Exception_in_array("can't resize");
-       }
-   }
 
    template<typename T>
   unsigned long int Array<T>::length() {
@@ -244,12 +323,12 @@ template<typename T>
    }
 
 template<typename T>
-   ArrayElem<T> *Array<T>::getFirst() {
+   T *Array<T>::getFirst() {
        return &data[0];
    }
 
    template<typename T>
-   ArrayElem<T> *Array<T>::getLast() {
+   T *Array<T>::getLast() {
        return &data[size - 1];
    }
 
@@ -258,7 +337,7 @@ template<typename T>
        if (index >= 0 && index <= size) {
            Array<T> Arr(*this);
            delete[] data;
-           data = new ArrayElem<T>[size + 1];
+           data = new T[size + 1];
            for (int i = 0; i < size + 1; ++i) {
                if (i < index) {
                    data[i] = Arr[i];
@@ -280,7 +359,7 @@ T Array<T>::getEnd() {
         throw Exception_in_array("no element");
     }
     else {
-        return data[size - 1].getElem();
+        return data[size - 1];
     }
 }
 
@@ -290,11 +369,11 @@ void Array<T>::Sort() {
     while (flag) {
         flag = false;
         for (unsigned long int i = 0; i < size - 1; ++i) {
-            if (data[i].getElem() > data[i + 1].getElem()) {
-                T dub = data[i].getElem();
-                T d = data[i+1].getElem();
-                data[i].setElem(d);
-                data[i + 1].setElem(dub);
+            if (data[i] > data[i + 1]) {
+                T dub = data[i];
+                T d = data[i+1];
+                data[i]=d;
+                data[i + 1]=dub;
                 flag = true;
             }
         }
@@ -321,6 +400,12 @@ bool Array<T>::operator==(const Array<T> &Arr) {
 }
 
 template <typename T>
+T& Array<T>:: operator[] (unsigned long int i)
+    {
+        return data[i];
+    }
+
+/*template <typename T>
    ArrayElem<T>& Array<T>::operator[](unsigned long int i) {
        if (i >= 0 && i < size) {
            return data[i];
@@ -328,7 +413,7 @@ template <typename T>
        else {
            throw Exception_in_array ("no such elem");
        }
-   }
+   }*/
 
 template <typename T>
 Array<T>& Array<T>::operator+(Array<T>& arrToSumm) {
@@ -377,3 +462,4 @@ std::ostream& operator<<(std::ostream& os, const Array<T1>& arrOutput) {
 
 
 #endif /* Arrayy_h */
+
